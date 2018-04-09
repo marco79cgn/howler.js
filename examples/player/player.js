@@ -7,6 +7,24 @@
  *
  *  MIT License
  */
+ 
+var flacApiBaseUrl = 'https://api.radioparadise.com/api/get_block?bitrate=4&info=true';
+var flacApiNextEventUrl = 'https://api.radioparadise.com/api/get_block?bitrate=4&info=true';
+var nextStream;
+
+function getNextEvent() {	
+	const xhr = new XMLHttpRequest();
+	xhr.open('get', 'https://crossorigin.me/'+flacApiNextEventUrl, false);
+    xhr.onload = function(e) {
+  		var data = JSON.parse(this.response);
+  		console.log(data);
+  		nextStream = data.url+'?src=alexa';
+  		console.log(nextStream);
+  		flacApiNextEventUrl = flacApiBaseUrl + '&event=' + data.end_event;
+	}
+    xhr.send();
+    return nextStream;
+}
 
 // Cache references to DOM elements.
 var elms = ['track', 'timer', 'duration', 'playBtn', 'pauseBtn', 'prevBtn', 'nextBtn', 'playlistBtn', 'volumeBtn', 'progress', 'bar', 'wave', 'loading', 'playlist', 'list', 'volume', 'barEmpty', 'barFull', 'sliderBtn'];
@@ -55,7 +73,7 @@ Player.prototype = {
       sound = data.howl;
     } else {
       sound = data.howl = new Howl({
-        src: ['./audio/' + data.file + '.webm', './audio/' + data.file + '.mp3'],
+        src: [data.file],
         html5: true, // Force to HTML5 so that the audio can stream in (best for large files).
         onplay: function() {
           // Display the duration.
@@ -152,7 +170,20 @@ Player.prototype = {
       }
     }
 
+    var nextUrl = getNextEvent();
     self.skipTo(index);
+     
+
+      var newElement = 
+	  {
+   	 	title: 'Radio Paradise Stream x',
+    	file: nextUrl,
+    	howl: null
+  		};
+      
+      self.playlist.push(newElement);
+      console.log('a');
+
   },
 
   /**
@@ -265,21 +296,21 @@ Player.prototype = {
   }
 };
 
+var firstStreamUrl = getNextEvent();
+var nextStreamUrl = getNextEvent();
+
+console.log(firstStreamUrl);
+
 // Setup our new audio player class and pass it the playlist.
 var player = new Player([
   {
-    title: 'Rave Digger',
-    file: 'rave_digger',
+    title: 'Radio Paradise Stream 1',
+    file: firstStreamUrl,
     howl: null
   },
   {
-    title: '80s Vibe',
-    file: '80s_vibe',
-    howl: null
-  },
-  {
-    title: 'Running Out',
-    file: 'running_out',
+    title: 'Radio Paradise Stream 2',
+    file: nextStreamUrl,
     howl: null
   }
 ]);
